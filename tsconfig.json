@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "preserve",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "@webgpu/types"
+    ],
+    "paths": {
+      "@engine_core/*": [
+        "src/engine_core/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@game/*": [
+        "src/game/*"
+      ],
+      "@interface/*": [
+        "src/interface/*"
+      ],
+      "@wasm_interface/*": [
+        "src/wasm_interface/*"
+      ],
+      "@as_wasm/*": [
+        "src/as_wasm/*"
+      ],
+      "@app": [
+        "src/app.ts"
+      ]
+    }
+  },
+  "include": [
+    "./**/*.ts",
+    "./**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "build/**/*",
+    "dist/**/*"
+  ],
+  "extends": "expo/tsconfig.base"
+}

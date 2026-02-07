@@ -1,0 +1,39 @@
+wasm intergration: 
+    ✔ get assemblyscript to work for backend stuff. (not a fan of having to rebuild everytime. @done(26-01-01 16:25)
+    
+webgpu: 
+    ✔ decouple rendering from the objects themselves @done(26-01-14 20:52)
+    ✔ camera /transformation matrix @done(26-01-14 20:51)
+    ☐ lighting/shadows?
+
+GameEngineStuff: 
+   ✔ Needs audio. @done(26-01-01 16:26)
+   ✔ Better input handling / controller/ mouse support. @done(26-01-17 17:59)
+   ✔ 3d support (needs a way to add 3d objects + shader and transform matrix for it.) @done(26-01-01 22:15)
+
+    UI: 
+ ☐ Some UI layout / styling system, as well as a bvh structure for mouse interactions etc.
+ ☐ better text system with a auto-layout system, anchors, centering etc. 
+
+
+    Animation: 
+ ✔ some sort of animation system. @done(26-01-02 00:53)
+ ☐ 3d skinning? 
+ ☐ 
+
+    Entity: 
+ ✔ finite/infinite state machine @done(26-01-14 06:07)
+
+    Camera: 
+ ☐ virtual camera/ cinimachine stuff. 
+
+   physic: 
+☐ gravity + simple collider? 
+☐ physics colliders 
+☐ physics solver (handle wasm side)
+
+   scene management:
+☐ have a way of loading a scene [serialising objects/loading in all] 
+
+multiplayer: 
+   ☐ scene sync
