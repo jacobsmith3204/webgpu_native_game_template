@@ -1,4 +1,4 @@
-import { Renderer, RenderableObject, RenderCamera } from "@engine_core/renderer";
+import { Renderer, RenderableObject, RenderCamera, GPUShaderStage } from "@engine_core/renderer";
 
 
 export const spriteMaterial = {
@@ -41,7 +41,7 @@ export const spriteMaterial = {
                 format: "bgra8unorm", // or whatever you're using
                 blend: {
                     color: {
-                        srcFactor: "one",
+                        srcFactor: "src-alpha",
                         dstFactor: "one-minus-src-alpha",
                         operation: "add",
                     },
@@ -69,8 +69,8 @@ export class SpriteRenderer implements Partial<RenderableObject> {
     // x, y, u, v 
     material = spriteMaterial;
     handlePass = HandlePass;
-    _currentTextureView?: GPUTextureView; // Track the texture view to detect changes
-    _bindGroupLayout?: GPUBindGroupLayout; // Store bindGroupLayout for reuse
+    _currentTextureView!: GPUTextureView; // Track the texture view to detect changes
+    _bindGroupLayout!: GPUBindGroupLayout; // Store bindGroupLayout for reuse
     textureIndex: number = 0;
 
     init() {
@@ -100,20 +100,6 @@ export class SpriteRenderer implements Partial<RenderableObject> {
 function InitRenderer(obj: SpriteRenderer & Partial<RenderableObject>) {
     const gpu = Renderer.device;
 
-    // DEFINES THE RENDER PIPELINE
-    const bindGroupLayout = gpu.createBindGroupLayout(obj.material.bindingGroupLayout);
-    const pipelineLayout = gpu.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
-    const pipeline = Object.murge({
-        layout: pipelineLayout,
-        vertex: { module: obj.shaderModule },
-        fragment: {
-            targets: [{ format: Renderer.canvasFormat }],
-            module: obj.shaderModule
-        }
-    }, obj.material.pipeline);
-    const renderPipeline = gpu.createRenderPipeline(pipeline);
-    //  BINDING IT ALL TOGETHER 
-
     const texture = obj.texture;
     const buffer = obj.cameraMatrixBuffer;
     if (!texture)
@@ -122,6 +108,19 @@ function InitRenderer(obj: SpriteRenderer & Partial<RenderableObject>) {
         throw new Error("no cameraMatrixBuffer set uniformBuffer(3 * 64)");
 
 
+    // DEFINES THE RENDER PIPELINE
+    const bindGroupLayout = gpu.createBindGroupLayout(obj.material.bindingGroupLayout);
+    const pipelineLayout = gpu.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
+    const pipeline = Object.murge({
+        layout: pipelineLayout,
+        vertex: { module: obj.shaderModule },
+        fragment: {
+            targets: [{ format: Renderer.surfaceFormat }],
+            module: obj.shaderModule
+        }
+    }, obj.material.pipeline);
+    const renderPipeline = gpu.createRenderPipeline(pipeline);
+    //  BINDING IT ALL TOGETHER 
     const bindGroup = gpu.createBindGroup({
         layout: bindGroupLayout,
         entries: [

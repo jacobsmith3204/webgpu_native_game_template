@@ -2,9 +2,9 @@ import { input } from "@engine_core/input";
 import { Time } from "@engine_core/time";
 import { Game } from "@game/Game";
 
-import { playerTexture, SpriteDependencies } from "@engine_core/asset_io/LoadAssets";
+import { SpriteDependencies, Assets } from "@engine_core/asset_io/LoadAssets";
 import type { PlayerEntity, CameraInterface, } from "@game/types";
-import { StoryManager } from "@game/inkle/StoryManager";
+//import { StoryManager } from "@game/inkle/storyManager";
 import { Instantiate } from "@engine_core/utils";
 
 
@@ -21,7 +21,7 @@ var xv = 0,
 
 // Update the interact prompt visibility
 function updateInteractPrompt(isNearNPC: boolean) {
-  const prompt = document.getElementById("interact-prompt");
+  /*const prompt = document.getElementById("interact-prompt");
   if (prompt) {
     // Hide prompt if modal is open
     if (StoryManager.modal.stateName == "open") {
@@ -31,7 +31,7 @@ function updateInteractPrompt(isNearNPC: boolean) {
     } else {
       prompt.classList.remove("show");
     }
-  }
+  }*/
 }
 
 export function UpdateCamera(x: number, y: number, camera: CameraInterface) {
@@ -56,9 +56,9 @@ export function UpdateCamera(x: number, y: number, camera: CameraInterface) {
 }
 
 export function createPlayer(game: Game): PlayerEntity {
-  const player = window.player = game.scene.heirachy["player"] =
+  const player = game.scene.heirachy["player"] =
     Instantiate(SpriteDependencies, {
-      texture: playerTexture,
+      texture: Assets.textures.playerTexture,
       isFrozen: false,
 
       Update(this: PlayerEntity) {
@@ -73,11 +73,11 @@ export function createPlayer(game: Game): PlayerEntity {
 
       // MOVE 2D
       Move2D(this: PlayerEntity): [number, number] {
-        if (StoryManager.modal.stateName == "open") {
+        /*if (StoryManager.modal.stateName == "open") {
           xv = 0;
           yv = 0;
           return [0, 0];
-        }
+        }*/
 
         const speed = 2;
         var dx = input.moveHorizontal || 0;

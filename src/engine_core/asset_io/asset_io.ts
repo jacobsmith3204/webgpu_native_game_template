@@ -1,74 +1,120 @@
-import { AllocateMesh, AllocateTexture, AllocateShaderModule, AllocateTextureArray, AllocateCubeMap, MeshRaw } from "@engine_core/renderer";
-import { audioCtx } from "@engine_core/audio/audio";
+import { AllocateMesh, AllocateTexture, AllocateShaderModule, AllocateTextureArray, AllocateCubeMap, MeshRaw, Renderer, isWeb } from "@engine_core/renderer";
+import UPNG from 'upng-js';
+import { readFile } from 'react-native-fs';
+import { Asset } from 'expo-asset';
 
-export const loadImages = (...src: any[]) => Promise.all(src.map(loadImage));
-export const loadCubeMaps = (...src: any[]) => Promise.all(src.map(loadCubeMap));
-export const loadShaders = (...src: any[]) => Promise.all(src.map(loadShader));
-export const loadAudioClips = (...src: any[]) => Promise.all(src.map(loadAudioClip));
-export const loadObjects = (...src: any[]) => Promise.all(src.map(loadObject));
-export const loadInkFiles = (...src: any[]) => Promise.all(src.map(loadInkFile));
 
-export const loadImage = (src: string) => fetch(src).then((r) => r.blob()).then(decodeImage).then((bitmap) => AllocateTexture(bitmap)).catch((err) => console.error(err));
-export const loadCubeMap = (src: string) => fetch(src).then((r) => r.blob()).then(decodeImage).then((bitmap) => AllocateCubeMap(bitmap)).catch((err) => console.error(err));
-export const loadShader = (src: string) => fetch(src).then((r) => r.text()).then(decodeShader).then((text) => AllocateShaderModule({ label: src, code: text })).catch((err) => console.error(err));
-export const loadAudioClip = (src: string) => fetch(src).then((r) => r.arrayBuffer()).then(decodeAudio).then((buffer) => { return { src, buffer }; }).catch((err) => console.error(err));
-export const loadObject = (src: string) => fetch(src).then((r) => r.text()).then(decodeObject).then((array) => AllocateMesh(array)).catch((err) => console.error(err));
+interface AssetGroup {
+  [key: string]: any;
+}
 
-export const loadInkFile = (src: string) => fetch(src).then((r) => r.text());
 
-export const loadTextureArray = (...src: any[]) =>
-  Promise.all(src.map((src) => fetch(src).then((r) => r.blob()).then(decodeImage))).then((bitmaps) => AllocateTextureArray(bitmaps)).catch((err) => console.error(err));
 
+
+export const loadImages = (images: AssetGroup) => Promise.all(Object.entries(images).map(([assetName, obj]: [string, any]) => loadImage(obj).then(val => images[assetName] = val)));
+export const loadCubeMaps = (images: AssetGroup) => Promise.all(Object.entries(images).map((([assetName, obj]: [string, any]) => loadCubeMap(obj).then(val => images[assetName] = val))));
+export const loadObjects = (meshes: AssetGroup) => Promise.all(Object.entries(meshes).map((([assetName, obj]: [string, any]) => loadObject(obj).then(val => meshes[assetName] = val))));
+export const loadInkFiles = (inkFiles: AssetGroup) => Promise.all(Object.entries(inkFiles).map((([assetName, obj]: [string, any]) => loadInkFile(obj).then(val => inkFiles[assetName] = val))));
+export const loadShaders = (shaders: AssetGroup) => Promise.all(Object.entries(shaders).map((([assetName, obj]: [string, any]) => loadShader(assetName, obj).then(val => shaders[assetName] = val))));
+//export const loadAudioClips = (...src: any[]) => Promise.all(src.map(loadAudioClip));
+export const loadTextureArrays = (...src: any[]) => Promise.all(src.map(src => fetch(src).then(r => r.arrayBuffer()).then(DecodeImageBlob))).then(bitmaps => AllocateTextureArray(bitmaps)).catch(err => console.error(err));
+
+
+
+// 
+
+export const loadImage = (obj: any) => GetPath(obj).then(fromPath).then(r => r.arrayBuffer()).then(DecodeImageBlob).then(bitmap => AllocateTexture(bitmap)).then(texture => copyPixelScale(texture, obj)).catch(err => console.error(err));
+export const loadCubeMap = (obj: any) => GetPath(obj).then(fromPath).then(r => r.arrayBuffer()).then(DecodeImageBlob).then(bitmap => AllocateCubeMap(bitmap)).then(texture => copyPixelScale(texture, obj)).catch(err => console.error(err));
+export const loadObject = (obj: any) => GetPath(obj).then(fromPath).then(r => r.text()).then(decodeObject).then(array => AllocateMesh(array)).catch(err => console.error(err));
+export const loadInkFile = (obj: any) => GetPath(obj).then(fromPath).then(r => r.text());
+export const loadShader = (assetName: string, obj: any) => GetPath(obj).then(fromPath).then(r => r.text()).then(decodeShader).then((text: string) => AllocateShaderModule({ label: assetName, code: text })).catch((err) => console.error(err));
+//export const loadAudioClip = (src: string) => fromPath(src).then(r => r.arrayBuffer()).then(decodeAudio).then((buffer) => { return { src, buffer }; }).catch((err) => console.error(err));
+
+export const loadTextureArray = async (obj: { modules: any[] }) => {
+  const paths = await GetPaths(obj);
+  return Promise.all(paths.map(path => fromPath(path).then(r => r.arrayBuffer()).then(DecodeImageBlob))).then(bitmaps => AllocateTextureArray(bitmaps)).then(textures => copyPixelScale(textures, obj)).catch(err => console.error(err));
+}
+
+const copyPixelScale = (texture: any, obj: any) => Object.assign(texture, { pixelScale: obj?.pixelScale || 1 / 64 }); // adds default pixelscale
+
+function GetPaths(obj: { modules: any[] }): Promise<string[]> {
+  return Promise.all(obj.modules.map((module) => GetPath(module)));
+}
+
+async function GetPath(obj: { module: any }): Promise<string> {
+  console.log(obj);
+
+  const asset = Asset.fromModule(obj.module);
+
+  console.log(asset);
+
+
+  if (!asset.downloaded)
+    await asset.downloadAsync();
+  const path = encodeURI(asset.localUri || asset.uri); // encode fixes errors with slashes and whitespaces
+  // 
+  if (!asset.localUri)
+    throw new Error("unable to get local uri of asset" + obj.toString());
+  return path as string;
+}
+
+async function fromPath(src: string) {
+  if (isWeb) {
+    return await fetch(src);
+  }
+  else {
+    const base64 = await readFile(src, 'base64');
+    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+
+    return await {
+      arrayBuffer: async () => bytes.buffer,
+      text: async () => {
+        const decoder = new TextDecoder();
+        return decoder.decode(bytes);
+      },
+      url: src,
+    } as Response;
+  }
+}
 
 
 
 
 
 /* converts the image from blob to byteArray*/
-async function decodeImage(blob: Blob): Promise<Bitmap> {
+async function DecodeImageBlob(buffer: ArrayBuffer): Promise<Bitmap> {
   try {
-    //return { data: {}, width: 0, height: 0, textureFormat:{ format: 'rgba8unorm', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST }};
-
-    const arrayBuffer = await blob.arrayBuffer();
-    const bmp = await createImageBitmap(new Blob([arrayBuffer]), {
-      premultiplyAlpha: "none",
-    });
-
-    // Draw into a canvas to extract pixel data
-
-    const canvas = new OffscreenCanvas(bmp.width, bmp.height);
-    const ctx = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
-
-    ctx.drawImage(bmp, 0, 0);
-
-    const img = ctx.getImageData(0, 0, bmp.width, bmp.height);
+    const img = UPNG.decode(buffer); // decode PNG
+    const data = UPNG.toRGBA8(img)[0];
 
     const textureFormat = {
       format: "rgba8unorm",
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     };
     return {
-      data: img.data,
-      width: bmp.width,
-      height: bmp.height,
+      data: data,
+      width: img.width,
+      height: img.height,
       textureFormat,
     } as Bitmap;
   } catch (err) {
-    console.error(err, blob);
+    console.error(err, buffer);
     return {} as Bitmap;
   }
 }
 
+
+
+
 async function decodeShader(text: string): Promise<string> {
   return text;
 }
-
-async function decodeAudio(data: ArrayBuffer): Promise<AudioBuffer> {
+/*
+async function decodeAudio(data: ArrayBuffer): Promise<any> {
   return audioCtx.decodeAudioData(data);
-}
+}*/
 
 type vector = number[];
-
 async function decodeObject(text = ""): Promise<MeshRaw> {
   const v: vector[] = [];
   const vt: vector[] = [];
@@ -137,10 +183,10 @@ async function decodeObject(text = ""): Promise<MeshRaw> {
     });
 
     /*
-        // triangle-strip
-        buffer.push(...corners);
-        vertCount+= corners.length;
-        */
+      // triangle-strip
+      buffer.push(...corners);
+      vertCount+= corners.length;
+    */
 
     // writes each individual 'triangle' to the buffer buffer
     if (corners.length == 3) {

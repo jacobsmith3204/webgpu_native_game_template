@@ -1,4 +1,4 @@
-import { Renderer, type RenderableObject, RenderCamera } from "@engine_core/renderer";
+import { Renderer, type RenderableObject, RenderCamera, GPUShaderStage } from "@engine_core/renderer";
 
 const fontMaterial = {
     bindingGroupLayout: {
@@ -94,20 +94,6 @@ export const TextRenderer: TextRenderer & Partial<RenderableObject> = {
 
 function InitRenderer(obj: TextRenderer & Partial<RenderableObject>) {
     const gpu = Renderer.device;
-    // DEFINES THE RENDER PIPELINE
-    // needs a custom layout as were trying to do some form of gpu instancing
-    const bindGroupLayout = gpu.createBindGroupLayout(obj.material.bindingGroupLayout);
-    const pipelineLayout = gpu.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
-    const pipeline = Object.murge({
-        layout: pipelineLayout,
-        vertex: { module: obj.shaderModule },
-        fragment: {
-            targets: [{ format: Renderer.canvasFormat }],
-            module: obj.shaderModule
-        }
-    }, obj.material.pipeline);
-    const renderPipeline = gpu.createRenderPipeline(pipeline);
-    //  BINDING IT ALL TOGETHER 
 
     const texture = obj.texture;
     const cameraBuffer = obj.cameraMatrixBuffer;
@@ -120,6 +106,20 @@ function InitRenderer(obj: TextRenderer & Partial<RenderableObject>) {
         throw new Error("no transformBuffer set uniformBuffer(large size)");
 
 
+    // DEFINES THE RENDER PIPELINE
+    // needs a custom layout as were trying to do some form of gpu instancing
+    const bindGroupLayout = gpu.createBindGroupLayout(obj.material.bindingGroupLayout);
+    const pipelineLayout = gpu.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
+    const pipeline = Object.murge({
+        layout: pipelineLayout,
+        vertex: { module: obj.shaderModule },
+        fragment: {
+            targets: [{ format: Renderer.surfaceFormat }],
+            module: obj.shaderModule
+        }
+    }, obj.material.pipeline);
+    const renderPipeline = gpu.createRenderPipeline(pipeline);
+    //  BINDING IT ALL TOGETHER 
 
     const bindGroup = gpu.createBindGroup({
         layout: bindGroupLayout,

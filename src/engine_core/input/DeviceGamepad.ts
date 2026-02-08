@@ -3,7 +3,9 @@ import { InputDeviceBase } from "./DeviceBase";
 import { input as player1 } from "./input";
 import { gamepadProfiles } from "./inputProfiles";
 
+/*
 export const gamepads: Record<number, Gamepad> = {}; // the source of all gamepad state, is updated everyframe with the new state.
+
 
 // device is per controller
 export class GamepadDevice extends InputDeviceBase {
@@ -71,7 +73,7 @@ window.addEventListener("gamepaddisconnected", (e) => {
   delete gamepads[e.gamepad.index];
 });
 
-//#region /* console button detector */
+//#region // console button detector
 const last: Record<string, Record<string, number>> = {
   axes: {},
   buttons: {},
@@ -101,4 +103,5 @@ function detectGameadChanges(gamepad: Gamepad | null): void {
     last.buttons[key] = gamepad.buttons[key].value;
   }
 }
-//#endregion /* console button detector */
+*/
+//#endregion // console button detector

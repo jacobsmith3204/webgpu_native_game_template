@@ -1,4 +1,5 @@
 import { invertMat4, multiplyMat4 } from "@engine_core/math";
+import { Renderer, type RenderableObject, RenderCamera, GPUShaderStage } from "@engine_core/renderer";
 
 export const skyboxMaterial = {
     bindingGroupLayout: {
@@ -62,36 +63,46 @@ export const skyboxMaterial = {
     }
 };
 
-export const SkyboxRenderer = {
+export const SkyboxRenderer: Partial<RenderableObject> = {
     // x, y, u, v 
     material: skyboxMaterial,
     handlePass: HandlePass,
     init() {
-        const gpu = window.renderer.device;
-        [this.renderPipeline, this.bindGroup] = InitRenderer.bind(this)(gpu)
+        InitRenderer(this);
+
     },
 }
 
 
-function InitRenderer(gpu) {
+function InitRenderer(obj: Partial<RenderableObject>) {
+    const gpu = Renderer.device;
+
+    const texture = obj.texture;
+    const buffer = obj.cameraMatrixBuffer;
+    if (!texture)
+        throw new Error("no texture set");
+    if (!buffer)
+        throw new Error("no cameraMatrixBuffer set uniformBuffer(3 * 64)");
+
     // DEFINES THE RENDER PIPELINE
-    const bindGroupLayout = gpu.createBindGroupLayout(this.material.bindingGroupLayout);
+    const bindGroupLayout = gpu.createBindGroupLayout(obj.material.bindingGroupLayout);
     const pipelineLayout = gpu.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
     const pipeline = Object.murge({
         layout: pipelineLayout,
-        vertex: { module: this.shaderModule },
+        vertex: { module: obj.shaderModule },
         fragment: {
-            targets: [{ format: gpu.canvasFormat }],
-            module: this.shaderModule
+            targets: [{ format: Renderer.surfaceFormat }],
+            module: obj.shaderModule
         }
-    }, this.material.pipeline);
+    }, obj.material.pipeline);
     const renderPipeline = gpu.createRenderPipeline(pipeline);
     //  BINDING IT ALL TOGETHER 
+
     const bindGroup = gpu.createBindGroup({
         layout: bindGroupLayout,
         entries: [
-            { binding: 0, resource: { buffer: this.cameraMatrixBuffer } },
-            { binding: 1, resource: this.texture.view },
+            { binding: 0, resource: { buffer } },
+            { binding: 1, resource: texture.view },
             {
                 binding: 2, resource: gpu.createSampler({
                     magFilter: "linear",
@@ -109,7 +120,7 @@ function InitRenderer(gpu) {
 }
 
 
-function HandlePass(pass, gpu, camera) {
+function HandlePass(this: RenderableObject, pass: GPURenderPassEncoder, gpu: GPUDevice, camera: RenderCamera) {
     // writes a single instance of the object to the buffer 
     pass.setPipeline(this.renderPipeline);
     pass.setVertexBuffer(0, this.vertexBuffer);
@@ -121,12 +132,11 @@ function HandlePass(pass, gpu, camera) {
 
 
     pass.setBindGroup(0, this.bindGroup); // attaches the texture (bindGroup) to the pass so i can draw it 
-    pass.draw(this.vertexBuffer.vertCount); // 6 vertices with 5 values per vertex(x,y,z,u,v)
+    pass.draw(this.vertexCount); // 6 vertices with 5 values per vertex(x,y,z,u,v)
 }
 
 
-function stripTranslation(m) {
+function stripTranslation(m: Matrix) {
     m[12] = m[13] = m[14] = 0;
     return m;
 }
-

@@ -1,4 +1,5 @@
 
+/*
 declare global {
     interface Window {
         webkitAudioContext?: typeof AudioContext;
@@ -47,3 +48,4 @@ document.addEventListener("mousedown", function () {
 audioEl.srcObject = audioStream;
 audioEl.play();
 
+*/

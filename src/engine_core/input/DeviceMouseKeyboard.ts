@@ -45,6 +45,7 @@ export class MouseKeyboardDevice extends InputDeviceBase {
 }
 
 // ====  MOUSE INPUT   ====
+/*
 const allCanvas = document.querySelectorAll("canvas");
 
 export const Enable2DMouse = () =>
@@ -56,6 +57,7 @@ export const Disable2DMouse = () =>
     canvas.removeEventListener("mousemove", HandleUnlockedMouse),
   );
 Enable2DMouse();
+
 
 export const EnableCanvasLock = () =>
   allCanvas.forEach((canvas) => {
@@ -74,6 +76,8 @@ export const DisableCanvasLock = () =>
     mouse.y = 0;
     window.using3D = false;
   });
+
+
 
 function HandleLockedMouse(e: MouseEvent) {
   const canvas = e.target;
@@ -130,3 +134,4 @@ document.addEventListener("keyup", (event: KeyboardEvent) => {
     keysPressed[event.code] = 0;
   }
 });
+*/

@@ -1,4 +1,4 @@
-import { Renderer, type RenderableObject, RenderCamera } from "@engine_core/renderer";
+import { Renderer, type RenderableObject, RenderCamera, GPUShaderStage } from "@engine_core/renderer";
 
 // everything to do with rendering to the screen
 const tileMaterial = {
@@ -100,6 +100,16 @@ export const TileRenderer: TileRenderer & Partial<RenderableObject> & Partial<Tr
 function InitRenderer(obj: TileRenderer & Partial<RenderableObject>) {
     const gpu = Renderer.device;
 
+    const texture = obj.texture;
+    const cameraBuffer = obj.cameraMatrixBuffer;
+    const transformBuffer = obj.transformBuffer;
+    if (!texture)
+        throw new Error("no texture set");
+    if (!cameraBuffer)
+        throw new Error("no cameraMatrixBuffer set uniformBuffer(3 * 64)");
+    if (!transformBuffer)
+        throw new Error("no cameraMatrixBuffer set uniformBuffer(3 * 64)");
+
 
     //console.log(`transform: ${this.transformBuffer}, camera&data:${this.cameraMatrixBuffer}`, this);
     // DEFINES THE RENDER PIPELINE
@@ -110,23 +120,12 @@ function InitRenderer(obj: TileRenderer & Partial<RenderableObject>) {
         layout: pipelineLayout,
         vertex: { module: obj.shaderModule },
         fragment: {
-            targets: [{ format: Renderer.canvasFormat }],
+            targets: [{ format: Renderer.surfaceFormat }],
             module: obj.shaderModule
         }
     }, obj.material.pipeline);
     const renderPipeline = gpu.createRenderPipeline(pipeline);
     //  BINDING IT ALL TOGETHER 
-
-
-    const texture = obj.texture;
-    const cameraBuffer = obj.cameraMatrixBuffer;
-    const transformBuffer = obj.transformBuffer;
-    if (!texture)
-        throw new Error("no texture set");
-    if (!cameraBuffer)
-        throw new Error("no cameraMatrixBuffer set uniformBuffer(3 * 64)");
-    if (!transformBuffer)
-        throw new Error("no cameraMatrixBuffer set uniformBuffer(3 * 64)");
 
     const bindGroup = gpu.createBindGroup({
         layout: bindGroupLayout,

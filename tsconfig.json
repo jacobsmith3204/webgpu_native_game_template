@@ -12,8 +12,6 @@
     "baseUrl": "./",
     "lib": [
       "ESNext",
-      "DOM",
-      "DOM.Iterable"
     ],
     "types": [
       "@webgpu/types"
@@ -39,6 +37,9 @@
       ],
       "@app": [
         "src/app.ts"
+      ],
+      "@assets/*": [
+        "public/assets/*"
       ]
     }
   },

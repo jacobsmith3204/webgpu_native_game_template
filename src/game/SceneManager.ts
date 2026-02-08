@@ -1,6 +1,6 @@
 import { State, StateList, StateOption, StateMachine, GenericStateMachine, Events } from "@components/StateMachine";
 import { createBackground, createPlayer, createCharacters, removeAllCharacters } from "@game/Entities";
-import { renderAccusations, CHARACTERS, switchToCharacter, switchToScene, loadInkScene } from "@game/inkle";
+//import { renderAccusations, CHARACTERS, switchToCharacter, switchToScene, loadInkScene } from "@game/inkle";
 import { Game } from "./Game";
 // Scene management types and utilities
 
@@ -85,71 +85,66 @@ export class SceneManager implements GenericStateMachine<typeof SceneManager> {
 
 
 // TUTORIAL SCENE 
+
+
 function setupTutorialScene() {
-  loadInkScene(GameScene.Tutorial);
-  ShowTutorialBackground();
-  switchToCharacter(CHARACTERS.TUTORIAL_CHARACTER);
+
+  // loadInkScene(GameScene.Tutorial);// 
+  // ShowTutorialBackground();// 
+  // switchToCharacter(CHARACTERS.TUTORIAL_CHARACTER)// ;
 }
 
 function ShowTutorialBackground() {
-  const div = document.getElementById("Background") as HTMLElement;
-  div.style.setProperty("background", `url(assets/sprites/intro_background.png) center / contain no-repeat`);
+  // const div = document.getElementById("Background") as HTMLElement;
+  // div.style.setProperty("background", `url(assets/sprites/intro_background.png) center / contain no-repeat`);
 }
 
 // MAIN SCENE 
 function SetupMainScene() {
 
-  loadInkScene(GameScene.Main);
-
-  // Create entities
+  //loadInkScene(GameScene.Main);
+  //
+  //// Create entities
   createBackground(Game.instance);
   createPlayer(Game.instance);
   createCharacters(Game.instance);
-
-  RemoveBackground();
+  //
+  //RemoveBackground();
 }
 function CleanupMainScene() {
-  removeAllCharacters(Game.instance);
+  // removeAllCharacters(Game.instance);
 }
 
 // ENDING SCENE 
 function setupEndingScene() {
-  loadInkScene(GameScene.Ending);
-  ShowEndBackground();
-  renderAccusations(); // Render the accusations before switching to ending
+  // loadInkScene(GameScene.Ending);
+  // ShowEndBackground();
+  // renderAccusations(); // Render the accusations before switching to ending
 }
 
 function RemoveBackground() {
-  const div = document.getElementById("Background") as HTMLElement;
-  div.style.removeProperty("background");
+  // const div = document.getElementById("Background") as HTMLElement;
+  // div.style.removeProperty("background");
 }
 
 
 function ShowEndBackground() {
-  const div = document.getElementById("Background") as HTMLElement;
-  div.style.setProperty("background", `url(assets/sprites/intro_background.png) center / contain no-repeat`);
+  // const div = document.getElementById("Background") as HTMLElement;
+  // div.style.setProperty("background", `url(assets/sprites/intro_background.png) center / contain no-repeat`);
 }
-
-
-
-
-
-
-
 
 export function nextScene() {
-  // finds the current scene's index within the enum GameScene values 
-  const currentSceneName = Game.instance.sceneManager.stateName as string;
-  const GameSceneNames = Object.values(GameScene) as string[]
-  const nextIndex = GameSceneNames.indexOf(currentSceneName) + 1;
-
-  // if we were already at the last scene, warn and return, so it doesnt break switching to a new scene
-  if (nextIndex >= GameSceneNames.length) {
-    console.warn(`next scene index ${nextIndex} greater than length of sceneEnum ${GameSceneNames.length} `)
-    return;
-  }
-  // switches to the next scene
-  const nextSceneName = GameSceneNames[nextIndex];
-  switchToScene(nextSceneName);
-}
-
+  // // finds the current scene's index within the enum GameScene values 
+  // const currentSceneName = Game.instance.sceneManager.stateName as string;
+  // const GameSceneNames = Object.values(GameScene) as string[]
+  // const nextIndex = GameSceneNames.indexOf(currentSceneName) + 1;
+  // 
+  // // if we were already at the last scene, warn and return, so it doesnt break switching to a new scene
+  // if (nextIndex >= GameSceneNames.length) {
+  //   console.warn(`next scene index ${nextIndex} greater than length of sceneEnum ${GameSceneNames.length} `)
+  //   return;
+  // }
+  // // switches to the next scene
+  // const nextSceneName = GameSceneNames[nextIndex];
+  // switchToScene(nextSceneName);
+}// 

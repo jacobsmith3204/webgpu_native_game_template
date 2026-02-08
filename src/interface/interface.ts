@@ -5,7 +5,9 @@ import {
   EnableCanvasLock,
 } from "../engine_core/input/DeviceMouseKeyboard";
 
+
 export function setupInputHandlers() {
+  /*
   document.getElementById("to2D")?.addEventListener("click", () => {
     DisableCanvasLock();
     Enable2DMouse();
@@ -14,8 +16,10 @@ export function setupInputHandlers() {
   document.getElementById("to3D")?.addEventListener("click", () => {
     Disable2DMouse();
     EnableCanvasLock();
-  });
+  });*/
 
+
+  /*
   const fsBtn = document.getElementById("fullscreen");
   fsBtn?.addEventListener(
     "click",
@@ -44,4 +48,6 @@ export function setupInputHandlers() {
   });
 
   console.log("added external 'inputs'");
+  */
+
 }

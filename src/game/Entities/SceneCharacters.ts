@@ -1,9 +1,23 @@
 import { Game } from "@game/Game";
-import { StoryManager, CHARACTERS } from "@game/inkle";
 import { InteractablePersonEntity, PlayerEntity } from "@game/types";
-import { SpriteDependencies, placeholderTexture } from "@engine_core/asset_io/LoadAssets";
+import { SpriteDependencies, Assets } from "@engine_core/asset_io/LoadAssets";
 import { input } from "@engine_core/input";
 import { Instantiate } from "@engine_core/utils";
+
+
+const CHARACTERS = {
+  VISITING_BARON: "barron",
+  STABLEMASTER: "stablemaster",
+  HEADCHEF: "chef",
+  HEAD_ENGINEER: "engineer",
+  JESTER: "jester",
+  BISHOP: "bishop",
+  STEWARD: "steward",
+  MAYOR: "mayor",
+  GENERAL: "general",
+  JUDGE: "judge",
+  KING: "king",
+}
 
 const NPCPositions = {
   [CHARACTERS.VISITING_BARON]: [10, 5, 0],
@@ -20,12 +34,14 @@ const NPCPositions = {
 };
 
 
+
 export const createInteractablePerson =
   (): Partial<InteractablePersonEntity> => ({
     interactionRadius: 3,
     hasTalked: false,
 
     CheckPosition() {
+      /*
       const entity = this as InteractablePersonEntity;
       // Calculate distance between player and NPC
       const player = window.player as PlayerEntity;
@@ -58,7 +74,7 @@ export const createInteractablePerson =
         entity.scale = [scale, scale];
       } else {
         entity.scale = [1, 1];
-      }
+      }*/
     },
   });
 
@@ -67,29 +83,11 @@ export const createInteractablePerson =
 
 const interactablePerson = createInteractablePerson();
 
-// Helper function to create a single character
-function createCharacter(
-  game: Game,
-  characterName: string,
-  position: [number, number, number]
-) {
-  game.scene.heirachy[characterName] = Instantiate(
-    SpriteDependencies,
-    interactablePerson,
-    {
-      texture: placeholderTexture,
-      characterProfile: characterName,
-      Start(this: InteractablePersonEntity) {
-        this.position = position;
-      },
-      Update(this: InteractablePersonEntity) {
-        this.CheckPosition();
-      },
-    }
-  );
-}
+
+
 
 // Remove all characters from the scene
+
 export function removeAllCharacters(game: Game) {
   Object.values(CHARACTERS).forEach((char: string) => {
     if (game.scene.heirachy[char]) {
@@ -104,6 +102,22 @@ export function createCharacters(game: Game) {
     createCharacter(game, character, position as [number, number, number]);
   }
 }
-
+// Helper function to create a single character
+function createCharacter(game: Game, characterName: string, position: [number, number, number]) {
+  game.scene.heirachy[characterName] = Instantiate(
+    SpriteDependencies,
+    interactablePerson,
+    {
+      texture: Assets.textures.placeholderTexture,
+      characterProfile: characterName,
+      Start(this: InteractablePersonEntity) {
+        this.position = position;
+      },
+      Update(this: InteractablePersonEntity) {
+        this.CheckPosition();
+      },
+    }
+  );
+}
 
 

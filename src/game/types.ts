@@ -1,4 +1,4 @@
-export { CameraInterface, TransformInterface } from "@components/types";
+export { CameraInterface, TransformInterface } from "@components/index";
 
 export interface InteractablePersonEntity extends TransformInterface {
   interactionRadius: number;

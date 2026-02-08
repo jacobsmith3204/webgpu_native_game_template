@@ -1,4 +1,6 @@
-import { Renderer, type RenderableObject, RenderCamera } from "@engine_core/renderer";
+import { Renderer, type RenderableObject, RenderCamera, GPUShaderStage } from "@engine_core/renderer";
+
+
 
 export const meshMaterial = {
     bindingGroupLayout: {
@@ -55,7 +57,6 @@ export const meshMaterial = {
                         operation: "add",
                     }
                 },
-                writeMask: GPUColorWrite.ALL,
             }],
         },
         depthStencil: {
@@ -84,6 +85,13 @@ export const meshRenderer: Partial<RenderableObject> = {
 function InitRenderer(obj: Partial<RenderableObject>) {
     const gpu = Renderer.device;
 
+    const texture = obj.texture;
+    const buffer = obj.cameraMatrixBuffer;
+    if (!texture)
+        throw new Error("no texture set");
+    if (!buffer)
+        throw new Error("no cameraMatrixBuffer set uniformBuffer(3 * 64)");
+
     // DEFINES THE RENDER PIPELINE
     const bindGroupLayout = gpu.createBindGroupLayout(obj.material.bindingGroupLayout);
     const pipelineLayout = gpu.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
@@ -91,20 +99,12 @@ function InitRenderer(obj: Partial<RenderableObject>) {
         layout: pipelineLayout,
         vertex: { module: obj.shaderModule },
         fragment: {
-            targets: [{ format: Renderer.canvasFormat }],
+            targets: [{ format: Renderer.surfaceFormat }],
             module: obj.shaderModule
         }
     }, obj.material.pipeline);
     const renderPipeline = gpu.createRenderPipeline(pipeline);
     //  BINDING IT ALL TOGETHER 
-
-
-    const texture = obj.texture;
-    const buffer = obj.cameraMatrixBuffer;
-    if (!texture)
-        throw new Error("no texture set");
-    if (!buffer)
-        throw new Error("no cameraMatrixBuffer set uniformBuffer(3 * 64)");
 
     const bindGroup = gpu.createBindGroup({
         layout: bindGroupLayout,

@@ -46,9 +46,7 @@ declare global {
     using3D: boolean;
 
   }
-  interface Canvas {
-    requestPointerLock(options?: Event): Promise<void>;
-  }
+
 }
 
 

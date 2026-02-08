@@ -1,8 +1,8 @@
 import { Input } from ".";
 import { MouseKeyboardDevice } from "./DeviceMouseKeyboard";
-import { gamepads } from "./DeviceGamepad";
 import { InputTarget } from "./inputTarget";
 import { mouse } from "./inputProfiles";
+//import { gamepads } from "./DeviceGamepad";
 
 
 
@@ -21,14 +21,18 @@ MKBDevice.connect(input);
 
 export function InputUpdate() {
   // updates the gamepad values
+  /*
   for (const pad of navigator.getGamepads()) {
     if (pad) gamepads[pad.index] = pad;
-  }
+  }*/
 }
+
+
 export function InputLateUpdate() {
+  /*
   if (document.pointerLockElement) {
     mouse.x = 0;
     mouse.y = 0;
-  }
+  }*/
 }
 

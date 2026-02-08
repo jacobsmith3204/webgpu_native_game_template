@@ -1,21 +1,22 @@
-/* //metro.config.mjs
-import { getDefaultConfig } from 'expo/metro-config';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const { getDefaultConfig } = require("expo/metro-config");
+const defaultConfig = getDefaultConfig(__dirname);
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+defaultConfig.resolver.extraNodeModules = {
+  "@assets": path.resolve(__dirname, 'public/assets'), // <- points @assets to ./dist/assets folder 
+  // (dist is the vite build copied path, so when making changes i now have to vite build then android build )
+};
 
-const config = getDefaultConfig(__dirname);
+// the types of file extentions it will resolve whe using requires(""); 
 
-// Metro expects a Babel transformer
-config.transformer.babelTransformerPath = fileURLToPath(
-  new URL('node_modules/metro-react-native-babel-transformer/src/index.js', import.meta.url)
-);
+const fileExtentions = [
+  "wgsl",
+  "obj",
+  "ink",
+];
 
-export default config;
-*/
 
-// metro.config.js
-const { getDefaultConfig } = require('expo/metro-config');
-module.exports = getDefaultConfig(__dirname);
+for (const extention of fileExtentions)
+  defaultConfig.resolver.assetExts.push(extention);
+
+module.exports = defaultConfig;

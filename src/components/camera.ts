@@ -7,9 +7,8 @@ import {
   subtract,
   Vec3,
 } from "../engine_core/math";
-import { createDepthTextureFromCanvas, Renderer } from "../engine_core/renderer";
-import type { Vector4, Vector3, Matrix, Ray } from "../engine_core/math";
-import type { TransformInterface } from "./types";
+import { createDepthTexture, Renderer } from "@engine_core/renderer";
+
 
 
 export interface Camera extends TransformInterface {
@@ -35,17 +34,18 @@ export class Camera {
   f = 1 / Math.tan((this.fovY * Math.PI) / 360);
 
   // actual camera stuff
-  initialise(canvas: HTMLCanvasElement) {
+  initialise(canvas: Canvas) {
     const camera = this;
     // Set initial size
     camera.setFromCanvas(canvas);
+
     // Watch for size changes
-    new ResizeObserver(() => camera.setFromCanvas(canvas)).observe(canvas);
+    //new ResizeObserver(() => camera.setFromCanvas(canvas)).observe(canvas);
   }
-  setFromCanvas(canvas: HTMLCanvasElement) {
+  setFromCanvas(canvas: Canvas) {
     // Get the display size (CSS size)
-    const displayWidth = canvas.clientWidth || canvas.width;
-    const displayHeight = canvas.clientHeight || canvas.height;
+    const displayWidth = canvas.width;
+    const displayHeight = canvas.height;
 
     // Update canvas internal resolution to match display size
     if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
@@ -55,7 +55,7 @@ export class Camera {
       // Update depth texture if renderer exists and GPU is initialized
       if (Renderer.depthTexture) {
         Renderer.depthTexture.destroy();
-        Renderer.depthTexture = createDepthTextureFromCanvas(canvas);
+        Renderer.depthTexture = createDepthTexture(canvas);
       }
     }
 
@@ -79,7 +79,7 @@ export class Camera {
 
   // translation matrix functions
   ViewMatrix(): Matrix {
-    const eye = this.position;
+    const eye = this.position as Vector3;
     const rot = quatToMat4(this.quaternion);
 
     // extract rotation columns
@@ -137,7 +137,7 @@ export class Camera {
   }
 
   screenPositionToRay(x: number, y: number, z: number = 1): Ray {
-    const origin = this.position; // camera pos in world
+    const origin = this.position as Vector3; // camera pos in world
     const target = this.screenToWorld(x, y, z);
     const direction = normalize(subtract(target, origin));
     return { origin, direction };

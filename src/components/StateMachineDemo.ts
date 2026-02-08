@@ -60,7 +60,7 @@ export class DemoEntity implements GenericStateMachine<typeof DemoEntity> {
     console.log("started falling");
     setTimeout(() => {
       console.log("fall timeout completed");
-      this.state = DemoEntity.STATES.idle;
+      this.state = DemoEntity.STATES.idle || "idle" || 0;
     }, 2000);
   }
 }

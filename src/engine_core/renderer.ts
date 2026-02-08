@@ -25,7 +25,7 @@ declare global {
     width: number;
     height: number;
     textureFormat: GPUTextureDescriptor;
-    data: ImageDataArray | GPUAllowSharedBufferSource;
+    data: GPUAllowSharedBufferSource;
     view: GPUTextureView;
     pixelScale: number | 0.015625; // 1/64
   }
@@ -33,12 +33,26 @@ declare global {
     vertexBuffer: GPUBuffer,
     vertexCount: number
   }
+
+  interface Canvas extends Partial<HTMLCanvasElement> {
+    width: number;
+    height: number;
+    requestPointerLock?(options?: Event): Promise<void>;
+    getContext?: (type: string) => GPUCanvasContext;
+  }
 }
 
 export interface MeshRaw {
   verts: Float32Array;
   vertCount: number;
 }
+
+export const GPUShaderStage: GPUShaderStage = {
+  VERTEX: 0x1,
+  FRAGMENT: 0x2,
+  COMPUTE: 0x4,
+};
+
 
 
 export interface RenderableObject {
@@ -61,7 +75,6 @@ export interface RenderCamera {
   ViewMatrix: () => Matrix;
   PerspectiveMatrix: () => Matrix;
   UIToScreenMatrix: () => Matrix;
-
 }
 
 export const newFrameView = (renderer: Renderer) => ({
@@ -98,11 +111,13 @@ const attachmentFromDepthTexture = (depthTexture: GPUTexture) => ({
   depthStoreOp: "store",
   depthClearValue: 1.0,
 });
-export const createDepthTextureFromCanvas = (canvas: HTMLCanvasElement) =>
+
+
+export const createDepthTexture = ({ width, height }: Canvas) =>
   Renderer.device.createTexture({
     size: {
-      width: canvas.width,
-      height: canvas.height,
+      width,
+      height,
       depthOrArrayLayers: 1,
     },
     format: "depth24plus",
@@ -110,49 +125,52 @@ export const createDepthTextureFromCanvas = (canvas: HTMLCanvasElement) =>
   });
 
 
+export const isWeb = typeof require == "undefined" || require("react-native").Platform.OS == 'web';
+
+
+
 // === RENDERER === 
 export class Renderer {
   // variables
-  static canvas: HTMLCanvasElement;
-  static canvasFormat: GPUTextureFormat = "bgra8unorm";
+  static surface: Canvas;
+  static surfaceFormat: GPUTextureFormat = "bgra8unorm";
   static context: GPUCanvasContext | null;
   static device: GPUDevice;
   static depthTexture: GPUTexture;
 
-  static async CreateFromCanvas(canvas: HTMLCanvasElement) {
 
-    const context = canvas.getContext("webgpu");  // canvas.getContext("webgpu");
+  static async Create(canvas: Canvas, context: GPUCanvasContext) {
+
+    console.log(`got canvas ${canvas} and context ${context}`);
+    const gpu = navigator.gpu;
     console.log("context", context);
 
-
     //check if webgpu exists/supported
-    if (!navigator.gpu || !context)
+    if (!gpu || !context)
       throw new Error("WebGPU not supported on this browser.");
 
     console.log("waiting for adapter...");
-    const adapter = await navigator.gpu.requestAdapter();
+    const adapter = await gpu.requestAdapter();
 
     if (!adapter) throw new Error("No appropriate GPUAdapter found.");
     // gets the addressable version of the gpu
     console.log("waiting for device...");
     const device = await adapter.requestDevice();
-    const format = navigator.gpu.getPreferredCanvasFormat();
+    const format = gpu.getPreferredCanvasFormat();
 
-    return new Renderer(canvas, context, device, format);
+    return new Renderer(device, context, format, canvas);
   }
 
 
-  constructor(canvas: HTMLCanvasElement, context: GPUCanvasContext, device: GPUDevice, format: GPUTextureFormat) {
 
-    Renderer.canvas = canvas;
+  constructor(device: GPUDevice, context: GPUCanvasContext, format: GPUTextureFormat, canvas: Canvas) {
     Renderer.context = context;
+    Renderer.surface = canvas;
     Renderer.context.configure({ device, format });
     Renderer.device = device;
-    Renderer.canvasFormat = format;
-    Renderer.depthTexture = createDepthTextureFromCanvas(canvas);
-    window.renderer = this;
+    Renderer.surfaceFormat = format;
+    Renderer.depthTexture = createDepthTexture(canvas);
   }
-
 
   // draws all the passes, then submits the resulting comandbuffer to the gpu
   RenderPasses(passes: RenderPass[]) {
